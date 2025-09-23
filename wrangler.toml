@@ -1,0 +1,7 @@
+name = "device-svg-generator"
+main = "api/devices-svg.js"
+compatibility_date = "2025-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
