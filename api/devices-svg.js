@@ -35,13 +35,13 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     const textColor = isDarkMode ? '#c9d1d9' : '#434d58';
     const statColor = isDarkMode ? '#8b949e' : '#434d58';
 
-    const itemHeight = 25;
+    const itemHeight = 45; // 增加设备项高度
     const padding = 25;
     const headerHeight = 60;
     const statsStartY = 80;
 
     // 计算总高度
-    const statsHeight = devices.length * itemHeight + 40; // 额外空间
+    const statsHeight = devices.length * itemHeight + 60; // 增加额外空间
     const totalHeight = headerHeight + statsHeight + padding;
     const width = 500;
 
@@ -69,17 +69,17 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     }
     
     .device-name {
-      font: 700 14px 'Segoe UI', Ubuntu, Sans-Serif;
+      font: 700 13px 'Segoe UI', Ubuntu, Sans-Serif;
       fill: ${textColor};
     }
     
     .device-info {
-      font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif;
+      font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif;
       fill: ${statColor};
     }
     
     .battery-text {
-      font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif;
+      font: 400 10px 'Segoe UI', Ubuntu, Sans-Serif;
       fill: ${statColor};
     }
     
