@@ -276,7 +276,7 @@ async function handleRequest(request) {
                 },
                 '/ai-summary-svg': {
                     method: 'GET',
-                    description: '生成AI使用总结SVG',
+                    description: '生成使用总结SVG',
                     parameters: {
                         api: '必需 - API基础地址',
                         deviceId: '必需 - 设备ID',
