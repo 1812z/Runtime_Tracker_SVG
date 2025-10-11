@@ -187,6 +187,7 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
 
 // 生成AI总结SVG - GitHub Stats 样式
 // 生成AI总结SVG - GitHub Stats 样式
+// 生成AI总结SVG - GitHub Stats 样式
 function generateAISummarySVG(summaryData, isDarkMode = false) {
     const bgColor = isDarkMode ? '#0d1117' : '#fffefe';
     const borderColor = isDarkMode ? '#30363d' : '#e4e2e2';
@@ -201,43 +202,68 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
     const headerHeight = 60;
     const maxContentWidth = width - 2 * padding;  // 内容最大宽度
 
-    // 智能文本换行处理 - 按字符宽度和标点符号分行
+    // 智能文本换行处理 - 严格控制宽度防止溢出
     function wrapText(text, maxWidth) {
         const lines = [];
-        const avgCharWidth = 6.5;  // 平均字符宽度（像素）
-        const maxCharsPerLine = Math.floor(maxWidth / avgCharWidth);
+        // 更保守的字符宽度估算
+        const chineseCharWidth = 12;  // 中文字符宽度
+        const englishCharWidth = 7;   // 英文字符宽度
+        const safetyMargin = 20;      // 安全边距
 
-        // 按句子分割（支持中英文标点）
-        const sentences = text.split(/([。！？!?;\n])/);
+        // 计算安全的最大字符数（使用中文宽度作为基准更安全）
+        const maxCharsPerLine = Math.floor((maxWidth - safetyMargin) / chineseCharWidth);
+
+        if (!text || text.trim() === '') {
+            return ['暂无内容'];
+        }
+
+        // 预处理：替换多个空格和换行符
+        text = text.replace(/\s+/g, ' ').trim();
+
         let currentLine = '';
+        let currentWidth = 0;
 
-        for (let i = 0; i < sentences.length; i++) {
-            const segment = sentences[i];
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
 
-            if (!segment) continue;
+            // 判断是中文还是英文
+            const isChinese = /[\u4e00-\u9fa5]/.test(char);
+            const charWidth = isChinese ? chineseCharWidth : englishCharWidth;
 
-            // 如果当前行加上新片段不超过最大长度
-            if ((currentLine + segment).length <= maxCharsPerLine) {
-                currentLine += segment;
-            } else {
-                // 如果当前行已有内容，先保存
-                if (currentLine) {
+            // 检查是否是标点符号，可以优先在标点处换行
+            const isPunctuation = /[。！？!?;,，、]/.test(char);
+
+            // 如果加上当前字符会超出宽度
+            if (currentWidth + charWidth > maxWidth - safetyMargin) {
+                // 保存当前行
+                if (currentLine.trim()) {
                     lines.push(currentLine.trim());
-                    currentLine = segment;
-                } else {
-                    // 如果单个片段就超长，强制分割
-                    let remaining = segment;
-                    while (remaining.length > maxCharsPerLine) {
-                        lines.push(remaining.substring(0, maxCharsPerLine));
-                        remaining = remaining.substring(maxCharsPerLine);
+                }
+                currentLine = char;
+                currentWidth = charWidth;
+            } else {
+                currentLine += char;
+                currentWidth += charWidth;
+
+                // 如果遇到标点符号且当前行已经比较长，可以考虑换行
+                if (isPunctuation && currentWidth > (maxWidth - safetyMargin) * 0.7) {
+                    if (currentLine.trim()) {
+                        lines.push(currentLine.trim());
                     }
-                    currentLine = remaining;
+                    currentLine = '';
+                    currentWidth = 0;
                 }
             }
         }
 
+        // 保存最后一行
         if (currentLine.trim()) {
             lines.push(currentLine.trim());
+        }
+
+        // 如果没有生成任何行，返回默认内容
+        if (lines.length === 0) {
+            return ['暂无内容'];
         }
 
         return lines;
@@ -352,6 +378,7 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
 
     return svgContent;
 }
+
 // 生成错误SVG - GitHub Stats 样式
 function generateErrorSVG(message, details = '', isDarkMode = false) {
     const bgColor = isDarkMode ? '#0d1117' : '#fffefe';
