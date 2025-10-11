@@ -1,4 +1,4 @@
-// Cloudflare Workers 版本 - GitHub Stats 样式
+// Cloudflare Workers 版本 - GitHub Stats 样式 + AI 总结
 
 // 生成电池SVG
 function generateBatterySVG(batteryLevel, isDarkMode = false) {
@@ -27,6 +27,17 @@ function generateStatusCircle(running, isDarkMode = false) {
     </g>`;
 }
 
+// XML转义函数
+function escapeXml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
 // 生成设备列表SVG - GitHub Stats 样式
 function generateDeviceListSVG(devices, isDarkMode = false) {
     const bgColor = isDarkMode ? '#0d1117' : '#fffefe';
@@ -35,13 +46,12 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     const textColor = isDarkMode ? '#c9d1d9' : '#434d58';
     const statColor = isDarkMode ? '#8b949e' : '#434d58';
 
-    const itemHeight = 45; // 增加设备项高度
+    const itemHeight = 45;
     const padding = 25;
     const headerHeight = 60;
     const statsStartY = 80;
 
-    // 计算总高度
-    const statsHeight = devices.length * itemHeight + 60; // 增加额外空间
+    const statsHeight = devices.length * itemHeight + 60;
     const totalHeight = headerHeight + statsHeight + padding;
     const width = 500;
 
@@ -99,7 +109,6 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     .not_bold { font-weight: 400; }
     .bold { font-weight: 700; }
     
-    /* Animations */
     @keyframes fadeInAnimation {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -117,14 +126,11 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     }
   </style>
 
-  <!-- 背景卡片 -->
   <rect data-testid="card-bg" x="0.5" y="0.5" rx="4.5" height="99%" stroke="${borderColor}" 
         width="${width - 1}" fill="${bgColor}" stroke-opacity="1"/>
 
-  <!-- 标题区域 -->
   <g data-testid="card-title" transform="translate(${padding}, 35)">
     <g transform="translate(0, 0)">
-      <!-- 设备图标 -->
       <g transform="translate(0, -8)">
         <rect x="0" y="0" width="20" height="14" rx="2" fill="none" stroke="${titleColor}" stroke-width="1.5"/>
         <rect x="4" y="3" width="12" height="8" rx="1" fill="none" stroke="${titleColor}" stroke-width="1"/>
@@ -135,40 +141,30 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     </g>
   </g>
 
-  <!-- 主体内容 -->
   <g data-testid="main-card-body" transform="translate(0, ${headerHeight})">
-    <!-- 统计信息头部 -->
     <g transform="translate(${padding}, 20)">
       <text class="stat bold" y="0">在线设备: ${devices.filter(d => d.running).length}/${devices.length}</text>
       <text class="device-info" y="18">最后更新: ${new Date().toLocaleString('zh-CN')}</text>
     </g>
 `;
 
-    // 生成设备列表
     devices.forEach((device, index) => {
         const y = 60 + (index * itemHeight);
         const animationDelay = 450 + (index * 150);
 
         svgContent += `
-    <!-- 设备 ${index + 1} -->
     <g transform="translate(0, ${y})">
       <g class="stagger" style="animation-delay: ${animationDelay}ms" transform="translate(${padding}, 0)">
-        <!-- 状态指示器 -->
         <g transform="translate(0, 4)">
           ${generateStatusCircle(device.running, isDarkMode)}
         </g>
         
-        <!-- 设备名称 -->
-        <text class="device-name" x="25" y="12">${device.device}</text>
+        <text class="device-name" x="25" y="12">${escapeXml(device.device)}</text>
+        <text class="device-info" x="25" y="28">${escapeXml(device.currentApp || '无应用运行')}</text>
         
-        <!-- 当前应用 -->
-        <text class="device-info" x="25" y="28">${device.currentApp || '无应用运行'}</text>
-        
-        <!-- 状态文本 -->
         <text class="stat bold ${device.running ? 'status-running' : 'status-stopped'}" 
               x="200" y="12">${device.running ? '● 运行中' : '● 已停止'}</text>
         
-        <!-- 电量信息 -->
         ${device.batteryLevel > 0 ? `
         <g transform="translate(320, 8)">
           <text class="battery-text" x="0" y="0">电量:</text>
@@ -183,6 +179,187 @@ function generateDeviceListSVG(devices, isDarkMode = false) {
     });
 
     svgContent += `
+  </g>
+</svg>`;
+
+    return svgContent;
+}
+
+// 生成AI总结SVG - GitHub Stats 样式
+function generateAISummarySVG(summaryData, isDarkMode = false) {
+    const bgColor = isDarkMode ? '#0d1117' : '#fffefe';
+    const borderColor = isDarkMode ? '#30363d' : '#e4e2e2';
+    const titleColor = isDarkMode ? '#58a6ff' : '#2f80ed';
+    const textColor = isDarkMode ? '#c9d1d9' : '#434d58';
+    const statColor = isDarkMode ? '#8b949e' : '#434d58';
+    const accentColor = isDarkMode ? '#58a6ff' : '#2f80ed';
+    const cardBgColor = isDarkMode ? '#161b22' : '#f6f8fa';
+
+    const width = 550;
+    const padding = 25;
+    const lineHeight = 18;
+
+    // 文本换行处理
+    function wrapText(text, maxCharsPerLine) {
+        const words = text.split('');
+        const lines = [];
+        let currentLine = '';
+
+        for (let char of words) {
+            if (currentLine.length < maxCharsPerLine) {
+                currentLine += char;
+            } else {
+                lines.push(currentLine);
+                currentLine = char;
+            }
+        }
+        if (currentLine) lines.push(currentLine);
+        return lines;
+    }
+
+    const summary = summaryData.summary || summaryData.message || '暂无总结';
+    const deviceName = summaryData.deviceName || summaryData.device || '未知设备';
+    const timestamp = summaryData.timestamp || new Date().toISOString();
+
+    const summaryLines = wrapText(summary, 60);
+    const contentHeight = summaryLines.length * lineHeight;
+    const totalHeight = 240 + contentHeight;
+
+    let svgContent = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" fill="none" role="img" aria-labelledby="aiTitleId">
+  <title id="aiTitleId">AI 使用总结</title>
+  <desc id="aiDescId">设备 ${escapeXml(deviceName)} 的 AI 使用分析</desc>
+  
+  <style>
+    .ai-header {
+      font: 600 18px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: ${titleColor};
+      animation: fadeInAnimation 0.8s ease-in-out forwards;
+    }
+    @supports(-moz-appearance: auto) {
+      .ai-header { font-size: 15.5px; }
+    }
+    
+    .ai-stat {
+      font: 600 14px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; 
+      fill: ${statColor};
+    }
+    @supports(-moz-appearance: auto) {
+      .ai-stat { font-size: 12px; }
+    }
+    
+    .ai-label {
+      font: 600 12px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: ${statColor};
+    }
+    
+    .ai-value {
+      font: 400 13px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: ${textColor};
+    }
+    
+    .ai-content {
+      font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: ${textColor};
+      line-height: 1.5;
+    }
+    
+    .ai-timestamp {
+      font: 400 10px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: ${statColor};
+      opacity: 0.7;
+    }
+    
+    .stagger {
+      opacity: 0;
+      animation: fadeInAnimation 0.3s ease-in-out forwards;
+    }
+    
+    @keyframes fadeInAnimation {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes scaleInAnimation {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <rect data-testid="card-bg" x="0.5" y="0.5" rx="4.5" height="99%" stroke="${borderColor}" 
+        width="${width - 1}" fill="${bgColor}" stroke-opacity="1"/>
+
+  <!-- 标题区域 -->
+  <g data-testid="card-title" transform="translate(${padding}, 35)">
+    <g transform="translate(0, 0)">
+      <!-- AI 图标 -->
+      <g transform="translate(0, -10)">
+        <circle cx="10" cy="10" r="10" fill="${accentColor}" opacity="0.15"/>
+        <g transform="translate(10, 10)">
+          <path d="M-4,-4 L-4,4 M4,-4 L4,4 M-4,0 L4,0" stroke="${accentColor}" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="-4" cy="-4" r="1.5" fill="${accentColor}"/>
+          <circle cx="4" cy="-4" r="1.5" fill="${accentColor}"/>
+          <circle cx="-4" cy="4" r="1.5" fill="${accentColor}"/>
+          <circle cx="4" cy="4" r="1.5" fill="${accentColor}"/>
+        </g>
+      </g>
+      <text x="30" y="0" class="ai-header" data-testid="header">AI 使用总结</text>
+    </g>
+  </g>
+
+  <!-- 主体内容 -->
+  <g data-testid="main-card-body" transform="translate(0, 60)">
+    <!-- 设备信息卡片 -->
+    <g class="stagger" style="animation-delay: 200ms" transform="translate(${padding}, 20)">
+      <rect width="${width - 2 * padding}" height="50" rx="6" fill="${cardBgColor}" opacity="0.6"/>
+      
+      <g transform="translate(15, 18)">
+        <text class="ai-label" y="0">设备名称</text>
+        <text class="ai-value" y="20">${escapeXml(deviceName)}</text>
+      </g>
+    </g>
+
+    <!-- 分隔线 -->
+    <line x1="${padding}" y1="90" x2="${width - padding}" y2="90" 
+          stroke="${borderColor}" stroke-width="1" opacity="0.5"/>
+
+    <!-- 总结内容区域 -->
+    <g class="stagger" style="animation-delay: 400ms" transform="translate(${padding}, 110)">
+      <text class="ai-stat bold" y="0">📊 总结内容</text>
+      
+      <g transform="translate(0, 25)">
+`;
+
+    // 渲染总结内容的每一行
+    summaryLines.forEach((line, index) => {
+        const animationDelay = 600 + (index * 100);
+        svgContent += `
+        <text class="ai-content stagger" style="animation-delay: ${animationDelay}ms" 
+              x="0" y="${index * lineHeight}">${escapeXml(line)}</text>`;
+    });
+
+    svgContent += `
+      </g>
+    </g>
+
+    <!-- 时间戳 -->
+    <g transform="translate(${width - padding}, ${totalHeight - 35})">
+      <text class="ai-timestamp" text-anchor="end">
+        生成时间: ${new Date(timestamp).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    })}
+      </text>
+    </g>
   </g>
 </svg>`;
 
@@ -218,17 +395,17 @@ function generateErrorSVG(message, details = '', isDarkMode = false) {
         width="449" fill="${bgColor}" stroke-opacity="1"/>
 
   <g transform="translate(25, 35)">
-    <text x="0" y="0" class="error-header">❌ ${message}</text>
+    <text x="0" y="0" class="error-header">❌ ${escapeXml(message)}</text>
   </g>
 
   <g transform="translate(25, 70)">
-    <text x="0" y="0" class="error-text">${details}</text>
-    <text x="0" y="25" class="error-details">请检查API地址是否正确且可访问</text>
+    <text x="0" y="0" class="error-text">${escapeXml(details)}</text>
+    <text x="0" y="25" class="error-details">请检查API地址和参数是否正确且可访问</text>
   </g>
 </svg>`;
 }
 
-// 路由处理函数
+// 路由处理函数 - 设备列表
 async function handleDevicesSVG(request) {
     try {
         const url = new URL(request.url);
@@ -250,11 +427,10 @@ async function handleDevicesSVG(request) {
             );
         }
 
-        // 获取设备数据
-        const response = await fetch(api, {
-            timeout: 5000,
+        const apiUrl = api.startsWith('http') ? api : `https://${api}`;
+        const response = await fetch(apiUrl, {
             headers: {
-                'User-Agent': 'Device-SVG-Generator/1.0'
+                'User-Agent': 'Device-SVG-Generator/2.0'
             }
         });
 
@@ -268,7 +444,6 @@ async function handleDevicesSVG(request) {
             throw new Error('API返回的数据格式不正确，期望数组格式');
         }
 
-        // 生成SVG
         const isDarkMode = theme === 'dark';
         const svg = generateDeviceListSVG(devices, isDarkMode);
 
@@ -304,6 +479,78 @@ async function handleDevicesSVG(request) {
     }
 }
 
+// 路由处理函数 - AI 总结
+async function handleAISummarySVG(request) {
+    try {
+        const url = new URL(request.url);
+        const api = url.searchParams.get('api');
+        const deviceId = url.searchParams.get('deviceId');
+        const theme = url.searchParams.get('theme') || 'light';
+
+        if (!api || !deviceId) {
+            const isDarkMode = theme === 'dark';
+            return new Response(
+                generateErrorSVG('缺少必需参数', '请提供api和deviceId参数', isDarkMode),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'image/svg+xml',
+                        'Access-Control-Allow-Origin': '*',
+                        'Cache-Control': 'no-cache'
+                    }
+                }
+            );
+        }
+
+        const apiBase = api.startsWith('http') ? api : `https://${api}`;
+        const apiUrl = `${apiBase}/ai/summary/${deviceId}`;
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                'User-Agent': 'AI-Summary-SVG-Generator/2.0'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API返回错误: ${response.status}`);
+        }
+
+        const summaryData = await response.json();
+        const isDarkMode = theme === 'dark';
+        const svg = generateAISummarySVG(summaryData, isDarkMode);
+
+        return new Response(svg, {
+            headers: {
+                'Content-Type': 'image/svg+xml',
+                'Cache-Control': 'public, max-age=300',
+                'Access-Control-Allow-Origin': '*',
+            }
+        });
+
+    } catch (error) {
+        console.error('Error generating AI summary SVG:', error);
+
+        const isDarkMode = (new URL(request.url)).searchParams.get('theme') === 'dark';
+        let errorMessage = '获取AI总结失败';
+
+        if (error.message.includes('fetch')) {
+            errorMessage = 'API地址无法访问';
+        } else if (error.message.includes('timeout')) {
+            errorMessage = 'API请求超时';
+        }
+
+        const errorSvg = generateErrorSVG(errorMessage, error.message, isDarkMode);
+
+        return new Response(errorSvg, {
+            status: 500,
+            headers: {
+                'Content-Type': 'image/svg+xml',
+                'Access-Control-Allow-Origin': '*',
+            }
+        });
+    }
+}
+
 // 健康检查
 function handleHealth() {
     return new Response(
@@ -312,7 +559,8 @@ function handleHealth() {
             timestamp: new Date().toISOString(),
             version: '2.0.0',
             platform: 'Cloudflare Workers',
-            style: 'GitHub Stats'
+            style: 'GitHub Stats',
+            features: ['devices-svg', 'ai-summary-svg']
         }),
         {
             headers: {
@@ -330,7 +578,7 @@ function handleRoot(request) {
 
     return new Response(
         JSON.stringify({
-            name: '设备列表SVG生成器 (GitHub Stats 风格)',
+            name: '设备列表和AI总结SVG生成器 (GitHub Stats 风格)',
             version: '2.0.0',
             platform: 'Cloudflare Workers',
             style: 'GitHub Stats Card',
@@ -344,17 +592,27 @@ function handleRoot(request) {
                     },
                     example: `${baseUrl}/devices-svg?api=https://api-usage.1812z.top/api/devices&theme=dark`
                 },
+                '/ai-summary-svg': {
+                    method: 'GET',
+                    description: '生成AI使用总结SVG (GitHub Stats 风格)',
+                    parameters: {
+                        api: '必需 - API基础地址',
+                        deviceId: '必需 - 设备ID',
+                        theme: '可选 - 主题模式 (light/dark，默认为light)'
+                    },
+                    example: `${baseUrl}/ai-summary-svg?api=https://api-usage.1812z.top&deviceId=device123&theme=dark`
+                },
                 '/health': {
                     method: 'GET',
                     description: '健康检查'
                 }
             },
             usage: {
-                github_readme: `在README中使用: ![设备状态](${baseUrl}/devices-svg?api=your-api-url)`,
-                direct_access: `直接访问SVG: ${baseUrl}/devices-svg?api=your-api-url`,
+                github_readme_devices: `![设备状态](${baseUrl}/devices-svg?api=your-api-url&theme=dark)`,
+                github_readme_ai: `![AI总结](${baseUrl}/ai-summary-svg?api=your-api-url&deviceId=your-device-id&theme=dark)`,
                 themes: ['light', 'dark']
             }
-        }),
+        }, null, 2),
         {
             headers: {
                 'Content-Type': 'application/json',
@@ -384,12 +642,19 @@ export default {
         switch (url.pathname) {
             case '/devices-svg':
                 return handleDevicesSVG(request);
+            case '/ai-summary-svg':
+                return handleAISummarySVG(request);
             case '/health':
                 return handleHealth();
             case '/':
                 return handleRoot(request);
             default:
-                return new Response('Not Found', { status: 404 });
+                return new Response('Not Found', {
+                    status: 404,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    }
+                });
         }
     }
 };
