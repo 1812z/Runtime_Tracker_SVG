@@ -252,16 +252,6 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
       .ai-stat { font-size: 12px; }
     }
     
-    .ai-label {
-      font: 600 12px 'Segoe UI', Ubuntu, Sans-Serif;
-      fill: ${statColor};
-    }
-    
-    .ai-value {
-      font: 400 13px 'Segoe UI', Ubuntu, Sans-Serif;
-      fill: ${textColor};
-    }
-    
     .ai-content {
       font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif;
       fill: ${textColor};
