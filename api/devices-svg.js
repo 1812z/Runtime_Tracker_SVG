@@ -311,7 +311,7 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
   <g data-testid="main-card-body" transform="translate(0, 60)">
     <!-- 设备信息卡片 -->
     <g class="stagger" style="animation-delay: 200ms" transform="translate(${padding}, 20)">
-      <rect width="${width - 2 * padding}" height="50" rx="6" fill="${cardBgColor}" opacity="0.6"/>
+    <rect width="${width - 2 * padding}" height="50" rx="6" fill="${borderColor}" opacity="0.3"/>
       
       <g transform="translate(15, 18)">
         <text class="ai-label" y="0">设备名称</text>
