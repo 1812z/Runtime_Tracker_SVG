@@ -193,11 +193,10 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
     const textColor = isDarkMode ? '#c9d1d9' : '#434d58';
     const statColor = isDarkMode ? '#8b949e' : '#434d58';
     const accentColor = isDarkMode ? '#58a6ff' : '#2f80ed';
-    const cardBgColor = isDarkMode ? '#161b22' : '#f6f8fa';
 
     const width = 550;
     const padding = 25;
-    const lineHeight = 18;
+    const lineHeight = 20;
 
     // 文本换行处理
     function wrapText(text, maxCharsPerLine) {
@@ -218,12 +217,12 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
     }
 
     const summary = summaryData.summary || summaryData.message || '暂无总结';
-    const deviceName = summaryData.deviceName || summaryData.device || '未知设备';
+    const deviceName = summaryData.deviceName || summaryData.device || summaryData.deviceId || '未知设备';
     const timestamp = summaryData.timestamp || new Date().toISOString();
 
-    const summaryLines = wrapText(summary, 60);
+    const summaryLines = wrapText(summary, 55);
     const contentHeight = summaryLines.length * lineHeight;
-    const totalHeight = 240 + contentHeight;
+    const totalHeight = Math.max(180 + contentHeight, 200);
 
     let svgContent = `
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" fill="none" role="img" aria-labelledby="aiTitleId">
@@ -238,6 +237,11 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
     }
     @supports(-moz-appearance: auto) {
       .ai-header { font-size: 15.5px; }
+    }
+    
+    .ai-device-name {
+      font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: ${statColor};
     }
     
     .ai-stat {
@@ -338,7 +342,7 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
 
     // 渲染总结内容的每一行
     summaryLines.forEach((line, index) => {
-        const animationDelay = 600 + (index * 100);
+        const animationDelay = 400 + (index * 100);
         svgContent += `
         <text class="ai-content stagger" style="animation-delay: ${animationDelay}ms" 
               x="0" y="${index * lineHeight}">${escapeXml(line)}</text>`;
@@ -349,7 +353,7 @@ function generateAISummarySVG(summaryData, isDarkMode = false) {
     </g>
 
     <!-- 时间戳 -->
-    <g transform="translate(${width - padding}, ${totalHeight - 35})">
+    <g transform="translate(${width - padding}, ${totalHeight - 25})">
       <text class="ai-timestamp" text-anchor="end">
         生成时间: ${new Date(timestamp).toLocaleString('zh-CN', {
         year: 'numeric',
