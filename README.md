@@ -5,5 +5,7 @@
 
 [![深色](https://device-svg-generator.2023158207.workers.dev/devices-svg?api=https://api-usage.1812z.top/api/devices&theme=dark)]()
 
+[![AI](https://device-svg-generator.2023158207.workers.dev/ai-summary-svg?api=https://api-usage.1812z.top/api&deviceId=%E6%89%8B%E6%9C%BA)]()
+
 ## 部署环境： CloudFlare Worker
 ## 公共API使用示例： https://device-svg-generator.2023158207.workers.dev/devices-svg?api=https://api-usage.1812z.top/api/devices
